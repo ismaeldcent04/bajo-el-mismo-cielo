@@ -544,6 +544,25 @@
     }, 40);
   }
 
+  // qué sección está "activa": la que cubre el punto medio vertical de la
+  // pantalla. No depende de que el 55% de la sección quepa en el viewport
+  // (eso fallaba en secciones más altas que la pantalla, como "por qué te
+  // amo" en pantallas angostas, donde nunca se llegaba a ese porcentaje).
+  var sections = Array.prototype.slice.call(document.querySelectorAll('.section'));
+  function updateActiveSection(){
+    if(!started || !sections.length) return;
+    var mid = window.innerHeight / 2;
+    for (var i = 0; i < sections.length; i++){
+      var rect = sections[i].getBoundingClientRect();
+      if(mid >= rect.top && mid < rect.bottom){
+        fadeTo(sections[i].dataset.track);
+        return;
+      }
+    }
+    var firstRect = sections[0].getBoundingClientRect();
+    fadeTo(mid < firstRect.top ? sections[0].dataset.track : sections[sections.length - 1].dataset.track);
+  }
+
   document.getElementById('startBtn').addEventListener('click', function(){
     started = true;
     document.getElementById('gate').classList.add('hidden');
@@ -551,16 +570,13 @@
     var first = current || 'hero';
     current = null;
     fadeTo(first);
-    var sections = document.querySelectorAll('.section');
-    var io = new IntersectionObserver(function(entries){
-      entries.forEach(function(e){
-        if(e.isIntersecting && e.intersectionRatio >= 0.55){
-          fadeTo(e.target.dataset.track);
-        }
-      });
-    }, {threshold:[0.55]});
-    sections.forEach(function(s){ io.observe(s); });
+    updateActiveSection();
   }, {once:true});
+
+  // red de seguridad: revisa la sección activa por tiempo además de por
+  // scroll, por si el navegador limita los eventos de scroll o de rAF
+  // (pasa en algunos celulares con el scroll por inercia).
+  setInterval(updateActiveSection, 300);
 
   document.getElementById('muteBtn').addEventListener('click', function(){
     muted = !muted;
@@ -651,7 +667,7 @@
   window.addEventListener('load', sizeScene);
   setTimeout(sizeScene, 400);
 
-  // flight path plane
+  // flight path plane + qué sección está activa (una sola pasada por scroll)
   var plane = document.getElementById('plane');
   var ticking = false;
   window.addEventListener('scroll', function(){
@@ -661,6 +677,7 @@
       var max = document.documentElement.scrollHeight - window.innerHeight;
       var frac = max > 0 ? window.scrollY / max : 0;
       plane.style.top = (frac*100) + '%';
+      updateActiveSection();
       ticking = false;
     });
   });
