@@ -510,29 +510,35 @@
 
   function fadeTo(key){
     if(key === current) return;
-    var next = tracks[key];
-    var prev = current ? tracks[current] : null;
     current = key;
     updateNowPlaying(key);
     if(!started) return;
-    if(!next.src){ if(prev){fadeOutOnly(prev);} return; }
-    if(muted){ if(prev){prev.pause();} return; }
-    next.volume = 0;
-    var p = next.play();
-    if(p && p.catch) p.catch(function(){});
+    var next = tracks[key];
+    var others = Object.keys(tracks).filter(function(k){ return k !== key; });
+    if(muted){
+      others.forEach(function(k){ tracks[k].pause(); });
+      return;
+    }
+    if(next.src && next.paused){
+      next.volume = 0;
+      var p = next.play();
+      if(p && p.catch) p.catch(function(){});
+    }
+    // fade the target in and sweep-fade every other track out, no matter how
+    // many earlier transitions got interrupted mid-fade (e.g. fast scrolling
+    // past several sections) — this guarantees only `key` is ever left playing.
     runFade(function(frac){
-      setVol(next, frac);
-      if(prev) setVol(prev, 1 - frac);
+      if(next.src) setVol(next, frac);
+      others.forEach(function(k){
+        var el = tracks[k];
+        if(!el.paused) setVol(el, 1 - frac);
+      });
     }, function(){
-      if(prev){ prev.pause(); setVol(prev, 1); }
-    });
-  }
-
-  function fadeOutOnly(prev){
-    runFade(function(frac){
-      setVol(prev, 1 - frac);
-    }, function(){
-      prev.pause(); setVol(prev, 1);
+      others.forEach(function(k){
+        var el = tracks[k];
+        el.pause();
+        el.volume = 1;
+      });
     });
   }
 
