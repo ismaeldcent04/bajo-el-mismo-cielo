@@ -431,7 +431,7 @@
 </div>
 
 <main>
-  <section class="section hero" id="s-hero" data-track="melendi">
+  <section class="section hero" id="s-hero" data-track="blachy">
     <div class="section-inner">
       <div class="label-row">
         <span>Para: mi princesita bella</span>
@@ -454,7 +454,7 @@
     </svg>
   </section>
 
-  <section class="section day" id="s-day" data-track="melendi">
+  <section class="section day" id="s-day" data-track="blachy">
     <div class="section-inner">
       <div class="day-head reveal-block">
         <span class="kicker">vuelve cada d&iacute;a por esto</span>
@@ -637,7 +637,7 @@
 <audio id="audio-letter" loop preload="none"></audio>
 <audio id="audio-outro" loop preload="none"></audio>
 <script>
-window.SONG_POOLS = {"melendi": [{"label": "La Promesa — Melendi", "src": "songs/la-promesa.mp3"}, {"label": "Tu Jardín con Enanitos — Melendi", "src": "songs/jardin-enanitos.mp3"}, {"label": "El Amor Es un Arte — Melendi", "src": "songs/amor-es-un-arte.mp3"}, {"label": "El Único Habitante de tu Piel — Melendi ft. Carlos Rivera", "src": "songs/unico-habitante.mp3"}], "reasons": [{"label": "Estoy Enamorado — Wisin y Yandel", "src": "songs/estoy-enamorado.mp3"}, {"label": "Adicto — Wisin", "src": "songs/adicto.mp3"}, {"label": "Gracias a Ti — Wisin y Yandel", "src": "songs/gracias-a-ti.mp3"}], "missyou": [{"label": "En un Solo Día — Wason Brazobán", "src": "songs/en-un-solo-dia.mp3"}, {"label": "La Mujer que a Mí me Gusta — Wason Brazobán", "src": "songs/la-mujer-que-me-gusta.mp3"}, {"label": "Tu Eres mi Reina — Grupo Negro", "src": "songs/tu-eres-mi-reina.mp3"}], "outro": [{"label": "Un Beso — Aventura", "src": "songs/un-beso.mp3"}, {"label": "Mi Corazoncito — Aventura", "src": "songs/mi-corazoncito.mp3"}, {"label": "Mi Santa — Romeo Santos ft. Tomatito", "src": "songs/mi-santa.mp3"}], "letter": [{"label": "Sabes — Reik", "src": "songs/sabes.mp3"}, {"label": "Yo Quisiera — Reik", "src": "songs/yo-quisiera.mp3"}, {"label": "Creo en Ti — Reik", "src": "songs/creo-en-ti.mp3"}], "home": [{"label": "La Promesa — Melendi", "src": "songs/la-promesa.mp3"}]};
+window.SONG_POOLS = {"blachy": [{"label": "Una Noche — El Blachy X El Rubio Acordeón", "src": "songs/una-noche.mp3"}, {"label": "A Un Milímetro De Ti — El Blachy", "src": "songs/a-un-milimetro-de-ti.mp3"}, {"label": "Hola Perdida — El Blachy", "src": "songs/hola-perdida.mp3"}], "reasons": [{"label": "Estoy Enamorado — Wisin y Yandel", "src": "songs/estoy-enamorado.mp3"}, {"label": "Adicto — Wisin", "src": "songs/adicto.mp3"}, {"label": "Gracias a Ti — Wisin y Yandel", "src": "songs/gracias-a-ti.mp3"}], "missyou": [{"label": "En un Solo Día — Wason Brazobán", "src": "songs/en-un-solo-dia.mp3"}, {"label": "La Mujer que a Mí me Gusta — Wason Brazobán", "src": "songs/la-mujer-que-me-gusta.mp3"}, {"label": "Tu Eres mi Reina — Grupo Negro", "src": "songs/tu-eres-mi-reina.mp3"}], "outro": [{"label": "Un Beso — Aventura", "src": "songs/un-beso.mp3"}, {"label": "Mi Corazoncito — Aventura", "src": "songs/mi-corazoncito.mp3"}, {"label": "Mi Santa — Romeo Santos ft. Tomatito", "src": "songs/mi-santa.mp3"}], "letter": [{"label": "Sabes — Reik", "src": "songs/sabes.mp3"}, {"label": "Yo Quisiera — Reik", "src": "songs/yo-quisiera.mp3"}, {"label": "Creo en Ti — Reik", "src": "songs/creo-en-ti.mp3"}], "home": [{"label": "La Promesa — Melendi", "src": "songs/la-promesa.mp3"}, {"label": "Tu Jardín con Enanitos — Melendi", "src": "songs/jardin-enanitos.mp3"}, {"label": "El Amor Es un Arte — Melendi", "src": "songs/amor-es-un-arte.mp3"}, {"label": "El Único Habitante de tu Piel — Melendi ft. Carlos Rivera", "src": "songs/unico-habitante.mp3"}]};
 </script>
 <script>
 (function(){
@@ -654,7 +654,7 @@ window.SONG_POOLS = {"melendi": [{"label": "La Promesa — Melendi", "src": "son
   }
 
   var tracks = {
-    melendi: document.getElementById('audio-melendi'),
+    blachy: document.getElementById('audio-melendi'),
     home: document.getElementById('audio-home'),
     reasons: document.getElementById('audio-reasons'),
     missyou: document.getElementById('audio-missyou'),
@@ -765,7 +765,7 @@ window.SONG_POOLS = {"melendi": [{"label": "La Promesa — Melendi", "src": "son
     document.getElementById('gate').classList.add('hidden');
     document.body.classList.add('journey-started');
     player.classList.add('visible');
-    var first = current || 'melendi';
+    var first = current || 'blachy';
     current = null;
     fadeTo(first);
     updateActiveSection();
