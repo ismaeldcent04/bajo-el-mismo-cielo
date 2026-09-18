@@ -152,14 +152,14 @@
   .butterfly{
     position:absolute; width:28px; height:22px; pointer-events:none; z-index:3;
     animation-name:butterflyFloat; animation-timing-function:ease-in-out; animation-iteration-count:infinite;
-    opacity:.85;
+    opacity:.85; margin-top:var(--parallax-y,0px);
   }
 
   /* ---------- reasons ---------- */
   .reasons .section-inner{max-width:760px;}
   .reasons-head{text-align:center; margin-bottom:3rem;}
   .reasons-head h2{font-style:italic; font-size:clamp(1.9rem,4.8vw,2.6rem); color:var(--star); margin-top:.6rem;}
-  .reason-grid{display:grid; grid-template-columns:repeat(2,1fr); gap:1.8rem 1.6rem;}
+  .reason-grid{display:grid; grid-template-columns:repeat(2,1fr); gap:1.8rem 1.6rem; perspective:900px;}
   @media (max-width:640px){.reason-grid{grid-template-columns:1fr;}}
 
   .postcard{
@@ -232,7 +232,7 @@
   .home-head{text-align:center; margin-bottom:2.4rem;}
   .home-head h2{font-style:italic; font-size:clamp(1.8rem,4.8vw,2.4rem); color:var(--star); margin-top:.6rem;}
   .home-head p{margin-top:1rem; color:rgba(244,232,220,.78); line-height:1.7; max-width:52ch; margin-left:auto; margin-right:auto; font-size:.98rem;}
-  .family-grid{display:grid; grid-template-columns:repeat(2,1fr); gap:1.6rem;}
+  .family-grid{display:grid; grid-template-columns:repeat(2,1fr); gap:1.6rem; perspective:900px;}
   @media (max-width:560px){.family-grid{grid-template-columns:1fr;}}
 
   /* ---------- para cuando me extrañes ---------- */
@@ -379,7 +379,7 @@
   .reveal-block{opacity:0; transform:translateY(20px); transition:opacity .7s ease, transform .7s ease;}
   .reveal-block.in-view{opacity:1; transform:translateY(0);}
 
-  .postcard{transition:opacity .7s ease, transform .35s ease, box-shadow .35s ease;}
+  .postcard{transition:opacity .6s ease, transform .6s cubic-bezier(.34,1.56,.64,1), box-shadow .35s ease;}
   .postcard:hover{
     transform:translateY(-5px) rotate(var(--tilt,0deg)) scale(1.015);
     box-shadow:0 24px 40px -16px rgba(0,0,0,.6), 0 2px 0 rgba(0,0,0,.05);
@@ -424,6 +424,24 @@
     opacity:0; pointer-events:none; transition:opacity .4s ease, transform .4s ease;
   }
   .star-toast.visible{opacity:1; transform:translateX(-50%) translateY(0);}
+
+  .lightbox{
+    position:fixed; inset:0; z-index:70; display:flex; align-items:center; justify-content:center;
+    background:rgba(10,8,20,.93); opacity:0; visibility:hidden; padding:2.2rem;
+    transition:opacity .3s ease, visibility .3s ease;
+  }
+  .lightbox.open{opacity:1; visibility:visible;}
+  .lightbox img{
+    max-width:min(92vw,640px); max-height:86vh; border-radius:6px; display:block;
+    box-shadow:0 30px 70px -20px rgba(0,0,0,.75); transform:scale(.92); transition:transform .3s cubic-bezier(.34,1.56,.64,1);
+  }
+  .lightbox.open img{transform:scale(1);}
+  .lightbox-close{
+    position:absolute; top:1rem; right:1.2rem; background:rgba(255,255,255,.08); border:1px solid rgba(244,232,220,.25);
+    color:var(--star); font-size:1.6rem; line-height:1; width:2.4rem; height:2.4rem; border-radius:50%;
+    cursor:pointer; display:flex; align-items:center; justify-content:center;
+  }
+  .lightbox-close:hover{background:rgba(255,255,255,.16);}
 
   @keyframes starPulse{
     0%,100%{transform:translate(-50%,-50%) scale(1); opacity:.8;}
@@ -979,7 +997,12 @@ window.SONG_POOLS = {"selena": [{"label": "Fotos y Recuerdos — Selena", "src":
   var JOKES = [
     {label: "QUE HACE SALTAR A UNA PERSONA TRISTE", url: "https://www.youtube.com/shorts/w2qiWtPxJKQ"},
     {label: "Chistes infantiles — El Payaso Benito Camelo", url: "https://www.youtube.com/shorts/bnlmAfZrFl8"},
-    {label: "La mujer de LOS 3 GOLPES", url: "https://www.youtube.com/watch?v=YyMINO2FBtM"}
+    {label: "La mujer de LOS 3 GOLPES", url: "https://www.youtube.com/watch?v=YyMINO2FBtM"},
+    {label: "Chistes con el payaso Benito", url: "https://youtube.com/shorts/P-kHLVoh30o"},
+    {label: "El Payaso Benito Camelo: cumpleaños de pobre vs. cumpleaños de ricos", url: "https://youtube.com/shorts/BW_Ha8-Q2Vc"},
+    {label: "El Chiste de la Gallina", url: "https://youtube.com/shorts/n_I0e5qPuW8"},
+    {label: "Cuando Michael Jackson subió al Cielo", url: "https://youtube.com/shorts/_zxcAnurErk"},
+    {label: "El amigo imprevisto del Payaso Benito", url: "https://youtube.com/shorts/g1_Me52Iyuw"}
   ];
   (function setJokeOfTheDay(){
     var labelEl = document.getElementById('jokeLabel');
@@ -1425,8 +1448,65 @@ window.SONG_POOLS = {"selena": [{"label": "Fotos y Recuerdos — Selena", "src":
       var frac = max > 0 ? window.scrollY / max : 0;
       plane.style.top = (frac*100) + '%';
       updateActiveSection();
+      updateParallax(window.scrollY);
       ticking = false;
     });
   });
+
+  // lightbox: clic en cualquier foto de las postales para verla más grande.
+  (function initLightbox(){
+    var lb = document.getElementById('lightbox');
+    var lbImg = document.getElementById('lightboxImg');
+    if(!lb || !lbImg) return;
+    function openLightbox(src, alt){
+      lbImg.src = src;
+      lbImg.alt = alt || '';
+      lb.classList.add('open');
+      lb.setAttribute('aria-hidden', 'false');
+    }
+    function closeLightbox(){
+      lb.classList.remove('open');
+      lb.setAttribute('aria-hidden', 'true');
+    }
+    document.addEventListener('click', function(e){
+      var img = e.target.closest ? e.target.closest('.photo-slot img') : null;
+      if(img){ openLightbox(img.src, img.alt); return; }
+      if(e.target === lb || e.target.id === 'lightboxClose'){ closeLightbox(); }
+    });
+    document.addEventListener('keydown', function(e){
+      if(e.key === 'Escape') closeLightbox();
+    });
+  })();
+
+  // las postales se inclinan levemente hacia el mouse (solo con puntero
+  // fino, y solo si no se pidió reducir el movimiento).
+  (function initCardTilt(){
+    var fine = window.matchMedia && window.matchMedia('(pointer: fine)').matches;
+    var reduced = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if(!fine || reduced) return;
+    document.querySelectorAll('.postcard').forEach(function(card){
+      card.addEventListener('mousemove', function(e){
+        var r = card.getBoundingClientRect();
+        var px = (e.clientX - r.left) / r.width - 0.5;
+        var py = (e.clientY - r.top) / r.height - 0.5;
+        var tilt = getComputedStyle(card).getPropertyValue('--tilt').trim() || '0deg';
+        card.style.transform = 'translateY(-5px) rotate(' + tilt + ') rotateX(' + (-py*9).toFixed(2) + 'deg) rotateY(' + (px*11).toFixed(2) + 'deg) scale(1.02)';
+      });
+      card.addEventListener('mouseleave', function(){ card.style.transform = ''; });
+    });
+  })();
+
+  // parallax suave: mariposas y avión se mueven a otra velocidad que el
+  // resto del contenido, dando sensación de profundidad al bajar.
+  var parallaxEls = Array.prototype.slice.call(document.querySelectorAll('.butterfly'));
+  var reducedMotionMQ = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  function updateParallax(scrollY){
+    if(reducedMotionMQ) return;
+    parallaxEls.forEach(function(el, i){
+      var speed = (i % 2 === 0) ? 0.06 : -0.05;
+      el.style.setProperty('--parallax-y', (scrollY * speed).toFixed(1) + 'px');
+    });
+  }
+  updateParallax(window.scrollY);
 })();
 </script>
