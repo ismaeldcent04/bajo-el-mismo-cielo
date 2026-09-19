@@ -1259,16 +1259,16 @@ window.SONG_POOLS = {"selena": [{"label": "Fotos y Recuerdos — Selena", "src":
   })();
 
   // "por qué te amo" también rota: un segundo set de razones que reemplaza
-  // al original cada semana, para que la sección no sea siempre igual.
+  // al original cada día, para que la sección no sea siempre igual.
   (function applyReasonsRotation(){
     var pool = window.FULL_REASONS_POOL;
     var cards = document.querySelectorAll('.reason-grid .postcard');
     if(!pool || !pool.length || !cards.length) return;
-    var weekIndex = Math.floor(Date.now() / (7 * 86400000));
-    // baraja pseudoaleatoria (determinista por semana) del pool completo,
-    // y toma las primeras N — así cada semana es una combinación distinta
+    var dayIndex = Math.floor(Date.now() / 86400000);
+    // baraja pseudoaleatoria (determinista por día) del pool completo,
+    // y toma las primeras N — así cada día es una combinación distinta
     // de razones, no un set fijo que siempre viaja junto.
-    var seed = weekIndex % 2147483647; if(seed <= 0) seed += 2147483646;
+    var seed = dayIndex % 2147483647; if(seed <= 0) seed += 2147483646;
     function rnd(){ seed = (seed * 16807) % 2147483647; return (seed - 1) / 2147483646; }
     var idxs = pool.map(function(_, i){ return i; });
     for(var i = idxs.length - 1; i > 0; i--){
