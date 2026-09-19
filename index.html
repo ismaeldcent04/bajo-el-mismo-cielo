@@ -862,9 +862,20 @@ window.SONG_POOLS = {"selena": [{"label": "Fotos y Recuerdos — Selena", "src":
     }
   }
 
+  // recuerda, por artista, en qué bloque de 8h ya se le forzó la canción que
+  // le tocaba por hash — así el chequeo periódico (o volver a entrar a la
+  // sección) no pisa una canción a la que ya se avanzó a mano (con el botón
+  // de siguiente o porque terminó sola) mientras siga en el mismo bloque.
+  var syncedWindow = {};
   function syncTrackSrc(key){
-    var idx = poolIndex(key);
+    var windowIdx = Math.floor(Date.now() / ROTATION_MS);
     var el = tracks[key];
+    if(syncedWindow[key] === windowIdx){
+      seekToStart(el, window.SONG_POOLS[key][Number(el.dataset.poolIndex || '0')]);
+      return;
+    }
+    syncedWindow[key] = windowIdx;
+    var idx = poolIndex(key);
     if(el.dataset.poolIndex === String(idx)){ seekToStart(el, window.SONG_POOLS[key][idx]); return; }
     el.dataset.poolIndex = String(idx);
     var wasPlaying = (key === current) && !el.paused;
