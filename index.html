@@ -1189,17 +1189,6 @@ window.SONG_POOLS = {"selena": [{"label": "Fotos y Recuerdos — Selena", "src":
   }
   var dayMsgIdx = Math.floor(Date.now() / 86400000) % DAY_MESSAGES.length;
   setDayMessage(dayMsgIdx);
-  // el mensaje va cambiando solo mientras la página sigue abierta, sin botón.
-  setInterval(function(){
-    dayMsgIdx = (dayMsgIdx + 1) % DAY_MESSAGES.length;
-    var el = document.getElementById('dayMessage');
-    if(!el) return;
-    el.classList.add('fading');
-    setTimeout(function(){
-      setDayMessage(dayMsgIdx);
-      el.classList.remove('fading');
-    }, 450);
-  }, 12000);
 
   // chiste del día — de El Mañanero / El Payaso Benito Camelo. No se
   // reproduce el audio aquí; el botón abre el clip original en YouTube.
