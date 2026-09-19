@@ -849,8 +849,7 @@ window.SONG_POOLS = {"selena": [{"label": "Fotos y Recuerdos — Selena", "src":
   // según la rotación; si ya tenía cargada esa misma canción, no la reinicia.
   // algunas canciones deben empezar directo en el coro/parte principal en
   // vez del silencio o la intro — "start" (segundos) lo indica por canción.
-  function seekToStart(el, key){
-    var item = currentSong(key);
+  function seekToStart(el, item){
     var target = (item && item.start) ? item.start : 0;
     if(target <= 0) return;
     if(Math.abs(el.currentTime - target) < 0.25) return;
@@ -866,12 +865,12 @@ window.SONG_POOLS = {"selena": [{"label": "Fotos y Recuerdos — Selena", "src":
   function syncTrackSrc(key){
     var idx = poolIndex(key);
     var el = tracks[key];
-    if(el.dataset.poolIndex === String(idx)){ seekToStart(el, key); return; }
+    if(el.dataset.poolIndex === String(idx)){ seekToStart(el, window.SONG_POOLS[key][idx]); return; }
     el.dataset.poolIndex = String(idx);
     var wasPlaying = (key === current) && !el.paused;
     var vol = el.volume;
     el.src = window.SONG_POOLS[key][idx].src;
-    seekToStart(el, key);
+    seekToStart(el, window.SONG_POOLS[key][idx]);
     if(wasPlaying){
       el.volume = vol;
       var p = el.play();
@@ -897,7 +896,7 @@ window.SONG_POOLS = {"selena": [{"label": "Fotos y Recuerdos — Selena", "src":
       return;
     }
     if(next.src && next.paused){
-      seekToStart(next, key);
+      seekToStart(next, window.SONG_POOLS[key][Number(next.dataset.poolIndex || '0')]);
       next.volume = 0;
       var p = next.play();
       if(p && p.catch) p.catch(function(){});
@@ -1010,7 +1009,7 @@ window.SONG_POOLS = {"selena": [{"label": "Fotos y Recuerdos — Selena", "src":
       el.pause();
       el.src = pool[idx].src;
       if(key === current) nowPlayingTitle.textContent = pool[idx].label;
-      seekToStart(el, key);
+      seekToStart(el, pool[idx]);
       if(shouldPlay){
         el.volume = 1;
         var p = el.play();
