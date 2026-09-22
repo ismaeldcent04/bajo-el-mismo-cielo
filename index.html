@@ -1280,12 +1280,12 @@ window.SONG_POOLS = {"selena": [{"label": "Fotos y Recuerdos — Selena", "src":
     el.textContent = DAY_MESSAGES[idx];
     el.dataset.idx = String(idx);
   }
-  var dayMsgIdx = Math.floor(Date.now() / 86400000) % DAY_MESSAGES.length;
+  var dayMsgIdx = Math.floor((Date.now() - 4 * 3600000) / 86400000) % DAY_MESSAGES.length;
   setDayMessage(dayMsgIdx);
 
   // fotos de Derek y Otho también rotan, una distinta cada día.
   (function rotateFamilyPhotos(){
-    var dayIndex = Math.floor(Date.now() / 86400000);
+    var dayIndex = Math.floor((Date.now() - 4 * 3600000) / 86400000);
     ['derek', 'otho'].forEach(function(key){
       var pool = window.PHOTO_POOLS && window.PHOTO_POOLS[key];
       if(!pool || !pool.length) return;
@@ -1319,7 +1319,7 @@ window.SONG_POOLS = {"selena": [{"label": "Fotos y Recuerdos — Selena", "src":
     var labelEl = document.getElementById('jokeLabel');
     var btnEl = document.getElementById('jokeBtn');
     if(!labelEl || !btnEl || !JOKES.length) return;
-    var dayIndex = Math.floor(Date.now() / 86400000);
+    var dayIndex = Math.floor((Date.now() - 4 * 3600000) / 86400000);
     var joke = JOKES[dayIndex % JOKES.length];
     labelEl.textContent = joke.label;
     btnEl.href = joke.url;
@@ -1357,7 +1357,7 @@ window.SONG_POOLS = {"selena": [{"label": "Fotos y Recuerdos — Selena", "src":
     var pool = window.FULL_REASONS_POOL;
     var cards = document.querySelectorAll('.reason-grid .postcard');
     if(!pool || !pool.length || !cards.length) return;
-    var dayIndex = Math.floor(Date.now() / 86400000);
+    var dayIndex = Math.floor((Date.now() - 4 * 3600000) / 86400000);
     // baraja pseudoaleatoria (determinista por día) del pool completo,
     // y toma las primeras N — así cada día es una combinación distinta
     // de razones, no un set fijo que siempre viaja junto.
@@ -1566,7 +1566,7 @@ window.SONG_POOLS = {"selena": [{"label": "Fotos y Recuerdos — Selena", "src":
     var resultCard = document.getElementById('quizResult');
     var restartBtn = document.getElementById('quizRestartBtn');
     var kickerEl = document.getElementById('quizKicker');
-    var dayIndex = Math.floor(Date.now() / 86400000);
+    var dayIndex = Math.floor((Date.now() - 4 * 3600000) / 86400000);
     var theme = QUIZ_THEMES[dayIndex % QUIZ_THEMES.length];
     var QUIZ = theme.questions;
     if(kickerEl) kickerEl.textContent = theme.name;
