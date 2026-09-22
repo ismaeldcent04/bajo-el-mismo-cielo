@@ -277,6 +277,31 @@
   .rp-btn--static{cursor:default;}
   .rp-btn--static:hover{border-color:transparent; color:var(--paper); transform:none;}
   .rp-btn--main{width:44px; height:44px; font-size:1.05rem; border-color:rgba(244,232,220,.4);}
+  .rp-btn--shuffle-on{border-color:var(--amber); color:var(--amber); opacity:1; background:rgba(195,155,242,.14);}
+
+  .rp-playlist-toggle{
+    display:flex; align-items:center; justify-content:space-between; width:100%;
+    margin-top:1.1rem; padding:.55rem 0 0; border:none; border-top:1px dashed rgba(244,232,220,.18);
+    background:transparent; color:rgba(244,232,220,.65); cursor:pointer;
+    font-family:'Space Mono',monospace; font-size:.66rem; letter-spacing:.04em; text-transform:uppercase;
+  }
+  .rp-playlist-toggle:hover{color:var(--amber);}
+  .rp-song-count{opacity:.7;}
+  .rp-playlist{
+    margin-top:.7rem; max-height:220px; overflow-y:auto; border-radius:10px;
+    background:rgba(13,9,28,.35);
+  }
+  .rp-song{
+    display:flex; align-items:center; gap:.6rem; width:100%; text-align:left;
+    padding:.5rem .7rem; border:none; background:transparent; color:rgba(244,232,220,.75);
+    cursor:pointer; font-size:.78rem; line-height:1.3; border-bottom:1px solid rgba(244,232,220,.07);
+  }
+  .rp-song:last-child{border-bottom:none;}
+  .rp-song:hover{background:rgba(244,232,220,.06); color:var(--star);}
+  .rp-song-num{font-family:'Space Mono',monospace; font-size:.66rem; color:rgba(244,232,220,.4); width:1.4rem; flex:none;}
+  .rp-song-text{overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
+  .rp-song.active{background:rgba(195,155,242,.14); color:var(--amber);}
+  .rp-song.active .rp-song-num{color:var(--amber);}
 
   .missyou .section-inner{max-width:640px;}
   .missyou-head{text-align:center; margin-bottom:2.2rem;}
@@ -640,12 +665,17 @@
           <span id="reggaetonDurTime">0:00</span>
         </div>
         <div class="rp-controls">
-          <button class="rp-btn rp-btn--ghost" id="reggaetonShuffleBtn" type="button" title="Otra al azar" aria-label="Canci&oacute;n al azar">&#128256;</button>
+          <button class="rp-btn rp-btn--ghost" id="reggaetonShuffleBtn" type="button" title="Modo aleatorio" aria-label="Activar modo aleatorio">&#128256;</button>
           <button class="rp-btn" id="reggaetonPrevBtn" type="button" title="Anterior" aria-label="Canci&oacute;n anterior">&#9198;</button>
           <button class="rp-btn rp-btn--main" id="reggaetonPlayBtn" type="button" title="Reproducir o pausar" aria-label="Reproducir o pausar">&#9654;</button>
           <button class="rp-btn" id="reggaetonNextMiniBtn" type="button" title="Siguiente" aria-label="Siguiente canci&oacute;n">&#9197;</button>
           <button class="rp-btn rp-btn--ghost rp-btn--static" type="button" title="La playlist se repite sola" aria-label="La playlist se repite sola" tabindex="-1">&#128257;</button>
         </div>
+        <button class="rp-playlist-toggle" id="reggaetonPlaylistToggle" type="button">
+          <span>&#9776; Ver playlist</span>
+          <span id="reggaetonSongCount" class="rp-song-count"></span>
+        </button>
+        <div class="rp-playlist" id="reggaetonPlaylist" hidden></div>
       </div>
     </div>
   </section>
@@ -849,6 +879,7 @@ window.SONG_POOLS = {"selena": [{"label": "Fotos y Recuerdos — Selena", "src":
   var current = null;
   var muted = false;
   var started = false;
+  var reggaetonShuffleMode = false; // modo aleatorio persistente, solo para la playlist de reggaetón
   var player = document.getElementById('player');
   var nowPlayingTitle = document.getElementById('nowPlayingTitle');
   var FADE_MS = 900;
@@ -1069,11 +1100,21 @@ window.SONG_POOLS = {"selena": [{"label": "Fotos y Recuerdos — Selena", "src":
 
   document.getElementById('nextSongBtn').addEventListener('click', function(){
     if(!current || muted) return;
-    advanceToNextSong(current, {fade: true});
+    if(current === 'reggaeton' && reggaetonShuffleMode){
+      goToRandomSong(current, {fade: true});
+    } else {
+      advanceToNextSong(current, {fade: true});
+    }
   });
 
   Object.keys(tracks).forEach(function(key){
-    tracks[key].addEventListener('ended', function(){ advanceToNextSong(key); });
+    tracks[key].addEventListener('ended', function(){
+      if(key === 'reggaeton' && reggaetonShuffleMode){
+        goToRandomSong(key);
+      } else {
+        advanceToNextSong(key);
+      }
+    });
   });
 
   document.getElementById('muteBtn').addEventListener('click', function(){
@@ -1106,6 +1147,11 @@ window.SONG_POOLS = {"selena": [{"label": "Fotos y Recuerdos — Selena", "src":
     var durEl = document.getElementById('reggaetonDurTime');
     var progressEl = document.getElementById('reggaetonProgress');
     var playBtn = document.getElementById('reggaetonPlayBtn');
+    var shuffleBtn = document.getElementById('reggaetonShuffleBtn');
+    var playlistToggleBtn = document.getElementById('reggaetonPlaylistToggle');
+    var playlistEl = document.getElementById('reggaetonPlaylist');
+    var songCountEl = document.getElementById('reggaetonSongCount');
+    var pool = window.SONG_POOLS.reggaeton;
 
     function formatTime(s){
       if(!isFinite(s) || s < 0) s = 0;
@@ -1113,8 +1159,29 @@ window.SONG_POOLS = {"selena": [{"label": "Fotos y Recuerdos — Selena", "src":
       return m + ':' + (sec < 10 ? '0' : '') + sec;
     }
 
+    // arma la lista completa una sola vez; cada fila salta directo a esa canción
+    songCountEl.textContent = pool.length + ' canciones';
+    pool.forEach(function(song, idx){
+      var row = document.createElement('button');
+      row.type = 'button';
+      row.className = 'rp-song';
+      row.dataset.idx = String(idx);
+      var num = document.createElement('span');
+      num.className = 'rp-song-num';
+      num.textContent = String(idx + 1);
+      var text = document.createElement('span');
+      text.className = 'rp-song-text';
+      text.textContent = song.label;
+      row.appendChild(num);
+      row.appendChild(text);
+      row.addEventListener('click', function(){
+        goToSongIndex('reggaeton', idx, {fade: true});
+        refresh();
+      });
+      playlistEl.appendChild(row);
+    });
+
     function refresh(){
-      var pool = window.SONG_POOLS.reggaeton;
       var idx = el.dataset.poolIndex !== undefined ? Number(el.dataset.poolIndex) : poolIndex('reggaeton');
       var song = pool[idx] || pool[0];
       var parts = song.label.split(' — ');
@@ -1127,6 +1194,9 @@ window.SONG_POOLS = {"selena": [{"label": "Fotos y Recuerdos — Selena", "src":
       durEl.textContent = formatTime(dur);
       playBtn.innerHTML = el.paused ? '&#9654;' : '&#9208;';
       disc.classList.toggle('playing', !el.paused);
+      Array.prototype.forEach.call(playlistEl.querySelectorAll('.rp-song'), function(row){
+        row.classList.toggle('active', Number(row.dataset.idx) === idx);
+      });
     }
 
     el.addEventListener('timeupdate', refresh);
@@ -1149,12 +1219,32 @@ window.SONG_POOLS = {"selena": [{"label": "Fotos y Recuerdos — Selena", "src":
       refresh();
     });
     document.getElementById('reggaetonNextMiniBtn').addEventListener('click', function(){
-      advanceToNextSong('reggaeton', {fade: true});
+      if(reggaetonShuffleMode){
+        goToRandomSong('reggaeton', {fade: true});
+      } else {
+        advanceToNextSong('reggaeton', {fade: true});
+      }
       refresh();
     });
-    document.getElementById('reggaetonShuffleBtn').addEventListener('click', function(){
-      goToRandomSong('reggaeton', {fade: true});
-      refresh();
+    // el aleatorio ahora es un modo que se queda activado, no un salto único —
+    // así afecta también al "siguiente" y a cuando la canción termina sola.
+    shuffleBtn.addEventListener('click', function(){
+      reggaetonShuffleMode = !reggaetonShuffleMode;
+      shuffleBtn.classList.toggle('rp-btn--shuffle-on', reggaetonShuffleMode);
+      shuffleBtn.title = reggaetonShuffleMode ? 'Modo aleatorio (activado)' : 'Modo aleatorio';
+      if(reggaetonShuffleMode){
+        goToRandomSong('reggaeton', {fade: true});
+        refresh();
+      }
+    });
+    playlistToggleBtn.addEventListener('click', function(){
+      var hidden = playlistEl.hasAttribute('hidden');
+      if(hidden){
+        playlistEl.removeAttribute('hidden');
+        refresh();
+      } else {
+        playlistEl.setAttribute('hidden', '');
+      }
     });
     progressEl.addEventListener('click', function(e){
       if(!el.duration) return;
