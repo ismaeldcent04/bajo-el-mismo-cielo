@@ -834,15 +834,16 @@ window.SONG_POOLS = {"selena": [{"label": "Fotos y Recuerdos — Selena", "src":
 <script>
 (function(){
   // cada sección tiene un "artista" (SONG_POOLS[key]) con varias canciones;
-  // la que suena depende de la hora, y cambia sola cada ROTATION_HOURS horas.
-  var ROTATION_HOURS = 8;
+  // la que suena depende del día, y cambia sola cada ROTATION_HOURS horas
+  // (alineado a medianoche hora RD, igual que el resto de rotaciones diarias).
+  var ROTATION_HOURS = 24;
   var ROTATION_MS = ROTATION_HOURS * 3600 * 1000;
   // hash chico para que la rotación no sea 0,1,2,3,0,1,2,3... sino que salte
   // de forma impredecible, aunque siga siendo la misma canción durante todo
-  // el mismo bloque de 8h (y en cualquier navegador que la abra en ese rato).
+  // el mismo día (y en cualquier navegador que la abra ese día).
   function hashInt(n){
-    // los multiplicadores de este hash son grandes y "n" también (segundos
-    // desde 1970 entre 8h), así que con el operador * normal de JS (que
+    // los multiplicadores de este hash son grandes y "n" también (días
+    // desde 1970), así que con el operador * normal de JS (que
     // trabaja en punto flotante de 64 bits) el resultado pierde precisión y
     // siempre da 0 — Math.imul hace la multiplicación en 32 bits de verdad,
     // como en el lenguaje original de este hash (C/C++).
@@ -859,7 +860,7 @@ window.SONG_POOLS = {"selena": [{"label": "Fotos y Recuerdos — Selena", "src":
   }
   function poolIndex(key){
     var pool = window.SONG_POOLS[key];
-    var windowIdx = Math.floor(Date.now() / ROTATION_MS);
+    var windowIdx = Math.floor((Date.now() - 4 * 3600000) / ROTATION_MS);
     var h = hashInt(windowIdx + stringHash(key));
     return h % pool.length;
   }
@@ -903,13 +904,13 @@ window.SONG_POOLS = {"selena": [{"label": "Fotos y Recuerdos — Selena", "src":
     }
   }
 
-  // recuerda, por artista, en qué bloque de 8h ya se le forzó la canción que
+  // recuerda, por artista, en qué día ya se le forzó la canción que
   // le tocaba por hash — así el chequeo periódico (o volver a entrar a la
   // sección) no pisa una canción a la que ya se avanzó a mano (con el botón
   // de siguiente o porque terminó sola) mientras siga en el mismo bloque.
   var syncedWindow = {};
   function syncTrackSrc(key){
-    var windowIdx = Math.floor(Date.now() / ROTATION_MS);
+    var windowIdx = Math.floor((Date.now() - 4 * 3600000) / ROTATION_MS);
     var el = tracks[key];
     if(syncedWindow[key] === windowIdx){
       seekToStart(el, window.SONG_POOLS[key][Number(el.dataset.poolIndex || '0')]);
